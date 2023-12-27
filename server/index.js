@@ -59,41 +59,124 @@ app.post("/api/login", async (req, res) => {
         const { email, password } = req.body;
 
         if (!(email && password)) {
-            res.status(400).send("All fields are required")
+            res.status(400).send("All fields are required");
+            return;
         }
 
         const loginUser = await user.findOne({ email: email });
 
         if (loginUser && (await bcrypt.compare(password, loginUser.password))) {
-            const token = jwt.sign(
+            // Generate an access token
+            const accessToken = jwt.sign(
                 { id: loginUser._id },
                 'shhh',
                 {
                     expiresIn: "5m"
                 }
-            )
-            loginUser.token = token
-            loginUser.password = undefined
+            );
 
-            res.status(201).json(loginUser)
+            const refreshToken = jwt.sign(
+                { id: loginUser._id },
+                'shhh',
+                {
+                    expiresIn: "7d" 
+                }
+            );
+
+            
+            loginUser.refreshToken = refreshToken;
+            await loginUser.save();
+            loginUser.password = undefined;
 
             const option = {
                 expires: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000),
                 httpOnly: true
-            }
-            res.status(200).cookie('token', token, option).json({
-                success: true, token, signupUser
-            })
-    
-            
-        }else{
-            message : 'invalid password'
+            };
+            res.cookie('token', accessToken, option);
+            res.cookie('refreshToken', refreshToken, { httpOnly: true });
+
+            res.status(200).json({
+                success: true,
+                accessToken,
+                refreshToken,
+                user: loginUser
+            });
+        } else {
+            res.status(404).json({ message: "User not found" });
         }
+    } catch (e) {
+        console.log(e.message);
+        res.status(500).json({ error: 'Internal Server Error' });
     }
-    catch (e) {
-        console.log(e.message)
+});
+
+
+
+app.post('/api/refresh-token', async (req, res) => {
+    try {
+        const refreshToken = req.cookies.refreshToken;
+
+        if (!refreshToken) {
+            return res.status(401).json({ message: 'Refresh token not provided' });
+        }
+
+        jwt.verify(refreshToken, 'shhh', (err, user) => {
+            if (err) {
+                return res.status(403).json({ message: 'Invalid refresh token' });
+            }
+
+            const newAccessToken = jwt.sign(
+                { id: user.id },
+                'shhh',
+                { expiresIn: '5m' }
+            );
+
+            res.json({ accessToken: newAccessToken });
+        });
+    } catch (error) {
+        console.log(error.message);
+        res.status(500).json({ error: 'Internal Server Error' });
     }
-})
+});
+
+
+app.post('/api/logout', (req, res) => {
+    try {
+        res.clearCookie('refreshToken');
+
+        res.status(200).json({ success: true, message: 'Logout successful' });
+    } catch (error) {
+        console.log(error.message);
+        res.status(500).json({ error: 'Internal Server Error' });
+    }
+});
+
+
+app.get('/api/protected', authenticateToken, (req, res) => {
+    res.json({ message: `Hello, ${req.user.name}! This is a protected resource.` });
+});
+
+
+function authenticateToken(req, res, next) {
+    const accessToken = req.cookies.token;
+
+    if (!accessToken) {
+        return res.status(401).json({ message: 'Access token not provided' });
+    }
+
+    jwt.verify(accessToken, 'shhh', (err, user) => {
+        if (err) {
+            return res.status(403).json({ message: 'Invalid access token' });
+        }
+
+        req.user = user;
+
+        next();
+    });
+}
+
+
+
 
 const PORT = 5000;
 
