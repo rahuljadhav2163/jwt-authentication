@@ -2,10 +2,15 @@ import express from "express"
 import mongoose from "mongoose";
 import bcrypt from "bcrypt"
 import jwt from "jsonwebtoken";
+import cookieParser from "cookie-parser";
 import user from "./model/user.js";
 import dotenv from "dotenv"
 dotenv.config();
 const app = express();
+
+app.use(express.json());
+app.use(cookieParser());
+
 
 const connectDB = async () => {
     const conn = await mongoose.connect(process.env.MONGOURI)
@@ -40,6 +45,7 @@ app.post('/api/signup', async (req, res) => {
         signupUser.token = token
         signupUser.password = undefined
 
+        
         res.status(201).json(signupUser)
     }
     catch (e) {
@@ -48,13 +54,45 @@ app.post('/api/signup', async (req, res) => {
 })
 
 
-app.post("/api/login", async(req, res)=>{
-try{
+app.post("/api/login", async (req, res) => {
+    try {
+        const { email, password } = req.body;
 
-}
-catch(e){
-    console.log(e.message)
-}
+        if (!(email && password)) {
+            res.status(400).send("All fields are required")
+        }
+
+        const loginUser = await user.findOne({ email: email });
+
+        if (loginUser && (await bcrypt.compare(password, loginUser.password))) {
+            const token = jwt.sign(
+                { id: loginUser._id },
+                'shhh',
+                {
+                    expiresIn: "5m"
+                }
+            )
+            loginUser.token = token
+            loginUser.password = undefined
+
+            res.status(201).json(loginUser)
+
+            const option = {
+                expires: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000),
+                httpOnly: true
+            }
+            res.status(200).cookie('token', token, option).json({
+                success: true, token, signupUser
+            })
+    
+            
+        }else{
+            message : 'invalid password'
+        }
+    }
+    catch (e) {
+        console.log(e.message)
+    }
 })
 
 const PORT = 5000;
