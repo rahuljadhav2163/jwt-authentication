@@ -1,15 +1,19 @@
 import express from "express"
 import mongoose from "mongoose";
-import bcrypt from "bcrypt"
+import bcrypt from "bcrypt";
+import path from 'path';
 import jwt from "jsonwebtoken";
 import cookieParser from "cookie-parser";
+
 import user from "./model/user.js";
 import dotenv from "dotenv"
 dotenv.config();
 const app = express();
-
+const __dirname = path.resolve();
 app.use(express.json());
 app.use(cookieParser());
+
+
 
 const connectDB = async () => {
     const conn = await mongoose.connect(process.env.MONGOURI)
@@ -191,6 +195,11 @@ function authenticateToken(req, res, next) {
 }
 
 
+if (process.env.NODE_ENV === 'production') {
+    app.use(express.static(path.join(__dirname, '..', 'client', 'build')));
+
+    app.get('*', (req, res) => { res.sendFile(path.join(__dirname, '..', 'client', 'build', 'index.html')) });
+}
 
 
 const PORT = 5000;
