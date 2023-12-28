@@ -8,6 +8,7 @@ function Home() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [user, setUser] = useState(null);
   const [data, setData] = useState('');
+  const [logoutTimeout, setLogoutTimeout] = useState(null);
 
   useEffect(() => {
     const accessToken = localStorage.getItem('accessToken');
@@ -18,23 +19,15 @@ function Home() {
       setIsLoggedIn(true);
       setUser(JSON.parse(storedUser));
       fetchData(accessToken);
+
+      
+      const timeoutId = setTimeout(() => {
+        handleLogout();
+      }, 5 * 60 * 1000); 
+
+      setLogoutTimeout(timeoutId);
     }
   }, []);
-
-  useEffect(() => {
-    const storedAccessToken = localStorage.getItem('accessToken');
-
-    const interval = setInterval(() => {
-      const currentAccessToken = localStorage.getItem('accessToken');
-
-      if (currentAccessToken !== storedAccessToken) {
-        
-        handleLogout();
-      }
-    }, 100000); 
-
-    return () => clearInterval(interval);
-  }, []); 
 
   const fetchData = async (accessToken) => {
     try {
@@ -62,6 +55,7 @@ function Home() {
       setIsLoggedIn(false);
       setUser(null);
       console.log('Logout successful');
+      clearTimeout(logoutTimeout); 
     } catch (error) {
       console.error('Error during logout:', error);
     }
@@ -70,30 +64,31 @@ function Home() {
   return (
     <div>
       <div className='home-box-container'>
-      {user ? (
-        isLoggedIn && (
-          <div className='user-info'>
-            <p className='toast-msg'>{data}</p>
-            <p className='expire-msg'>Session expire in 1 minute</p>
-            <p className='user'>👤 Welcome, {user.name}!</p>
-            <button  className='logout-btn' type='button' onClick={handleLogout}>
-              Logout
-            </button>
-          </div>
-        )
-      ) : (
-       <>
-        <p className='user'>👤 Hello User</p>
-        <p className='routes'>Routes</p>
-              <Link className='sigup-route' to='/signup'>➡️ Signup</Link>
-              <Link className='login-route' to='/login'>🔐 Login</Link>
-              <p className='slogen'>Hello user signup fast..!</p></>
-        
-      )
-      }
-             
+        {user ? (
+          isLoggedIn && (
+            <div className='user-info'>
+              <p className='toast-msg'>{data}</p>
+              <p className='expire-msg'>Session expires in 5 minutes after login.</p>
+              <p className='user'>👤 Welcome, {user.name}!</p>
+              <button className='logout-btn' type='button' onClick={handleLogout}>
+                Logout
+              </button>
+            </div>
+          )
+        ) : (
+          <>
+            <p className='user'>👤 Hello User</p>
+            <p className='routes'>Routes</p>
+            <Link className='sigup-route' to='/signup'>
+              ➡️ Signup
+            </Link>
+            <Link className='login-route' to='/login'>
+              🔐 Login
+            </Link>
+            <p className='slogen'>Hello user signup fast..!</p>
+          </>
+        )}
       </div>
-      
     </div>
   );
 }

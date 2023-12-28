@@ -43,7 +43,7 @@ app.post('/api/signup', async (req, res) => {
             { id: signupUser._id, email },
             'shhh',
             {
-                expiresIn: "1m"
+                expiresIn: "5m"
             }
         )
         signupUser.token = token
@@ -75,7 +75,7 @@ app.post("/api/login", async (req, res) => {
                 { id: loginUser._id },
                 'shhh',
                 {
-                    expiresIn: "1m"
+                    expiresIn: "5m"
                 }
             );
 
@@ -83,7 +83,7 @@ app.post("/api/login", async (req, res) => {
                 { id: loginUser._id },
                 'shhh',
                 {
-                    expiresIn: "1m"
+                    expiresIn: "5m"
                 }
             );
 
@@ -132,7 +132,7 @@ app.post('/api/refresh-token', async (req, res) => {
             const newAccessToken = jwt.sign(
                 { id: user.id },
                 'shhh',
-                { expiresIn: '1m' }
+                { expiresIn: '5m' }
             );
 
             res.json({ accessToken: newAccessToken });
