@@ -23,9 +23,7 @@ function Signup() {
             if (response?.data?.success) {
                 console.log(response?.data?.token)
                 alert(response?.data?.message)
-               
-
-                // window.location.href = "login";
+                window.location.href = "login";
             } else {
                 alert(response?.data?.message)
             }

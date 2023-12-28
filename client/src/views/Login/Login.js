@@ -17,9 +17,10 @@ function Login() {
 
   const handleLogin = async () => {
     try {
-        if (!( email && password)) {
-            alert("all fields are required");
-        }
+      if (!(email && password)) {
+        alert('All fields are required');
+        return;
+      }
 
       const response = await axios.post('/api/login', {
         email,
@@ -32,12 +33,21 @@ function Login() {
         localStorage.setItem('accessToken', accessToken);
         localStorage.setItem('refreshToken', refreshToken);
         localStorage.setItem('user', JSON.stringify(user));
+
+        
+        const refreshResponse = await axios.post('/api/refresh-token', {}, { withCredentials: true });
+
+        const newAccessToken = refreshResponse.data.accessToken;
+        localStorage.setItem('accessToken', newAccessToken);
+
         alert('Login successful');
+        window.location.href = '/';
       } else {
         alert('Login failed');
       }
     } catch (error) {
-      alert('invalid deatail', error);
+      console.error('Error during login:', error);
+      alert('Invalid details. Please try again.');
     }
   };
 
@@ -49,7 +59,7 @@ function Login() {
         <input
           className='input-box'
           type='email'
-          placeholder='enter email'
+          placeholder='Enter email'
           value={email}
           onChange={handleEmailChange}
         />
@@ -57,7 +67,7 @@ function Login() {
         <input
           className='input-box'
           type='password'
-          placeholder='enter password'
+          placeholder='Enter password'
           value={password}
           onChange={handlePasswordChange}
         />
