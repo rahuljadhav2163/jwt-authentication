@@ -11,7 +11,6 @@ const app = express();
 app.use(express.json());
 app.use(cookieParser());
 
-
 const connectDB = async () => {
     const conn = await mongoose.connect(process.env.MONGOURI)
     if (conn) {
@@ -30,23 +29,25 @@ app.post('/api/signup', async (req, res) => {
         }
         const encPassword = await bcrypt.hash(password, 10);
 
+
         const signupUser = await user.create({
             name,
             email,
             password: encPassword
+            
         })
         const token = jwt.sign(
             { id: signupUser._id, email },
             'shhh',
             {
-                expiresIn: "5m"
+                expiresIn: "1m"
             }
         )
         signupUser.token = token
         signupUser.password = undefined
 
-        
-        res.status(201).json(signupUser)
+        res.status(201).json({token:token, signupUser,
+             message:"Signup succesfully",success:true})
     }
     catch (e) {
         console.log(e.message)
@@ -66,12 +67,12 @@ app.post("/api/login", async (req, res) => {
         const loginUser = await user.findOne({ email: email });
 
         if (loginUser && (await bcrypt.compare(password, loginUser.password))) {
-            // Generate an access token
+
             const accessToken = jwt.sign(
                 { id: loginUser._id },
                 'shhh',
                 {
-                    expiresIn: "5m"
+                    expiresIn: "1m"
                 }
             );
 
@@ -79,11 +80,11 @@ app.post("/api/login", async (req, res) => {
                 { id: loginUser._id },
                 'shhh',
                 {
-                    expiresIn: "7d" 
+                    expiresIn: "1m"
                 }
             );
 
-            
+
             loginUser.refreshToken = refreshToken;
             await loginUser.save();
             loginUser.password = undefined;
@@ -128,7 +129,7 @@ app.post('/api/refresh-token', async (req, res) => {
             const newAccessToken = jwt.sign(
                 { id: user.id },
                 'shhh',
-                { expiresIn: '5m' }
+                { expiresIn: '1m' }
             );
 
             res.json({ accessToken: newAccessToken });
@@ -143,7 +144,6 @@ app.post('/api/refresh-token', async (req, res) => {
 app.post('/api/logout', (req, res) => {
     try {
         res.clearCookie('refreshToken');
-
         res.status(200).json({ success: true, message: 'Logout successful' });
     } catch (error) {
         console.log(error.message);
@@ -151,10 +151,25 @@ app.post('/api/logout', (req, res) => {
     }
 });
 
+app.post('/api/invalidate-refresh-token', async (req, res) => {
+  try {
+    const { refreshToken } = req.body;
+
+    await user.updateOne({ refreshTokens: refreshToken }, { $pull: { refreshTokens: refreshToken } });
+
+    res.status(200).json({ success: true, message: 'Refresh token invalidated' });
+  } catch (error) {
+    console.error(error.message);
+    res.status(500).json({ success: false, message: 'Internal Server Error' });
+  }
+});
+
+  
+
 
 app.get('/api/protected', authenticateToken, (req, res) => {
-    res.json({ message: `Hello, ${req.user.name}! This is a protected resource.` });
-});
+    res.json({ message: `Hello, user! This is a protected resource.` });
+});0
 
 
 function authenticateToken(req, res, next) {
