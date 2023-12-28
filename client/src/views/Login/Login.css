@@ -1,0 +1,21 @@
+.login-form-container{
+    border: 2px solid black;
+    margin: 60px auto;
+    height: 400px;
+    width: 400px;
+}
+.login-heading{
+    text-align: center;
+}
+.input-box{
+    display: block;
+    margin: 30px auto;
+    height: 35px;
+    width: 300px;
+    font-size: 20px;
+}
+.login-btn{
+    display: block;
+    padding: 7px 40px;
+    margin: 20px auto;
+}
