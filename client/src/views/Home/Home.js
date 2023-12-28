@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
 import './Home.css';
+import { Link } from 'react-router-dom';
 
 function Home() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -68,19 +69,31 @@ function Home() {
 
   return (
     <div>
+      <div className='home-box-container'>
       {user ? (
         isLoggedIn && (
           <div className='user-info'>
-            <p>{data}</p>
-            <p>Welcome, {user.name}!</p>
-            <button className='logout-btn' type='button' onClick={handleLogout}>
+            <p className='toast-msg'>{data}</p>
+            <p className='expire-msg'>Session expire in 1 minute</p>
+            <p className='user'>👤 Welcome, {user.name}!</p>
+            <button  className='logout-btn' type='button' onClick={handleLogout}>
               Logout
             </button>
           </div>
         )
       ) : (
-        <p>Hello User</p>
-      )}
+       <>
+        <p className='user'>👤 Hello User</p>
+        <p className='routes'>Routes</p>
+              <Link className='sigup-route' to='/signup'>➡️ Signup</Link>
+              <Link className='login-route' to='/login'>🔐 Login</Link>
+              <p className='slogen'>Hello user signup fast..!</p></>
+        
+      )
+      }
+             
+      </div>
+      
     </div>
   );
 }

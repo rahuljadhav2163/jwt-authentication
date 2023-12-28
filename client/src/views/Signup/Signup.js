@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import axios from "axios"
 import "./Signup.css"
+import { Link } from 'react-router-dom';
 function Signup() {
 
     const [name, setName] = useState('');
@@ -19,7 +20,7 @@ function Signup() {
                 email,
                 password,
             });
-       
+
             if (response?.data?.success) {
                 console.log(response?.data?.token)
                 alert(response?.data?.message)
@@ -64,8 +65,10 @@ function Signup() {
                         setPassword(e.target.value)
                     }}
                 />
-
+                <p className='home'><Link to='/'>🏠</Link></p>
                 <button className='signup-btn' onClick={userSignup} type='button'>Signup</button>
+
+                <p className='login-in'>Already have account ? <Link to='/login'>Login</Link></p>
 
             </form>
         </div>

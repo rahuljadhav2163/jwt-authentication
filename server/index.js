@@ -4,7 +4,6 @@ import bcrypt from "bcrypt";
 import path from 'path';
 import jwt from "jsonwebtoken";
 import cookieParser from "cookie-parser";
-
 import user from "./model/user.js";
 import dotenv from "dotenv"
 dotenv.config();

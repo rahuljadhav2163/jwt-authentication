@@ -3,6 +3,9 @@
     margin: 60px auto;
     height: 400px;
     width: 400px;
+    background-color: white;
+    border-radius: 10px;
+    position: relative;
 }
 .login-heading{
     text-align: center;
@@ -13,9 +16,27 @@
     height: 35px;
     width: 300px;
     font-size: 20px;
+    border-radius: 7px;
 }
 .login-btn{
     display: block;
     padding: 7px 40px;
     margin: 20px auto;
+    background-color: blueviolet;
+    color: white;
+    font-size: 19px;
+    border-radius: 5px;
+}
+.already-ac{
+    text-align: center;
+    padding-top: 50px;
+    font-size: 20px;
+}
+.homeicon{
+    position: absolute;
+    top: -25px;
+    right: 10px;
+    font-size: 30px;
+    cursor: pointer;
+    text-decoration: none;
 }
