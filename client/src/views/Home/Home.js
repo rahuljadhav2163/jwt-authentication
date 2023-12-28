@@ -20,16 +20,30 @@ function Home() {
     }
   }, []);
 
-  const fetchData = async (accessTokens) => {
+  useEffect(() => {
+    const storedAccessToken = localStorage.getItem('accessToken');
+
+    const interval = setInterval(() => {
+      const currentAccessToken = localStorage.getItem('accessToken');
+
+      if (currentAccessToken !== storedAccessToken) {
+        
+        handleLogout();
+      }
+    }, 100000); 
+
+    return () => clearInterval(interval);
+  }, []); 
+
+  const fetchData = async (accessToken) => {
     try {
-        const accessToken = localStorage.getItem('accessToken');
       const response = await axios.get('/api/protected', {
         headers: {
           Authorization: `Bearer ${accessToken}`,
         },
       });
       console.log('Authenticated API Response:', response.data);
-      setData(response.data.message); 
+      setData(response.data.message);
     } catch (error) {
       console.error('Error during authenticated API request:', error.response.data);
     }
@@ -37,7 +51,10 @@ function Home() {
 
   const handleLogout = async () => {
     try {
-      await axios.post('/api/logout');
+      const refreshToken = localStorage.getItem('refreshToken');
+      if (refreshToken) {
+        await axios.post('/api/invalidate-refresh-token', { refreshToken });
+      }
       localStorage.removeItem('accessToken');
       localStorage.removeItem('refreshToken');
       localStorage.removeItem('user');
